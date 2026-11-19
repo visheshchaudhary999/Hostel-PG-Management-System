@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Notices{% endblock %}
+{% block body %}
+<h1>Notice board</h1>
+<div class="cols">
+  <form method="post" class="card form">
+    <h2>Post a notice</h2>
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Title <input name="title" required maxlength="120"></label>
+    <label>Notice <textarea name="body" rows="5" required></textarea></label>
+    <button class="btn">Post notice</button>
+  </form>
+  <div>{% for n in items %}<div class="card notice"><b>{{ n.title }}</b> <span class="small muted">{{ n.posted_on }}</span><p>{{ n.body }}</p></div>
+    {% else %}<p class="muted">No notices yet.</p>{% endfor %}</div>
+</div>
+{% endblock %}

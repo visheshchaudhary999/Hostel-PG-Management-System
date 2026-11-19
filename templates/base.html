@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Hostel Manager{% endblock %} · Hostel Manager</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <a class="brand" href="{{ url_for('home') }}"><span class="logo">H</span> Sunrise Hostel</a>
+    {% if user %}
+    <nav>
+      {% if user.role == 'warden' %}
+        {% set here = request.endpoint %}
+        <a href="{{ url_for('dashboard') }}" class="{{ 'on' if here == 'dashboard' }}">Dashboard</a>
+        <a href="{{ url_for('rooms') }}" class="{{ 'on' if here == 'rooms' }}">Rooms</a>
+        <a href="{{ url_for('residents') }}" class="{{ 'on' if here in ('residents', 'resident_detail', 'admit') }}">Residents</a>
+        <a href="{{ url_for('dues') }}" class="{{ 'on' if here == 'dues' }}">Rent</a>
+        <a href="{{ url_for('complaints') }}" class="{{ 'on' if here == 'complaints' }}">Complaints</a>
+        <a href="{{ url_for('notices') }}" class="{{ 'on' if here == 'notices' }}">Notices</a>
+      {% else %}
+        <a href="{{ url_for('me') }}" class="on">My hostel</a>
+      {% endif %}
+      <form method="post" action="{{ url_for('logout') }}" class="inline">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <button class="link">Log out ({{ user.email }})</button>
+      </form>
+    </nav>
+    {% endif %}
+  </div>
+</header>
+<main>
+  {% for cat, msg in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ 'error' if cat == 'error' }}">{{ msg }}</div>
+  {% endfor %}
+  {% block body %}{% endblock %}
+</main>
+</body>
+</html>

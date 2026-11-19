@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<div class="head"><h1>Dashboard</h1><span class="muted">{{ today.strftime('%d %B %Y') }}</span></div>
+<div class="stats">
+  <div class="stat"><b>{{ s.occupancy }}%</b><span>occupancy · {{ s.occupied }} of {{ s.beds }} beds</span>
+    <div class="meter"><i style="width: {{ s.occupancy }}%"></i></div></div>
+  <div class="stat"><b>{{ s.vacant }}</b><span>vacant beds{% for name, b in s.blocks.items() %} · {{ name }} {{ b.beds - b.occupied }}{% endfor %}</span></div>
+  <div class="stat"><b>{{ rupees(s.collected) }}</b><span>collected in {{ month_name(s.month) }}</span></div>
+  <div class="stat warn"><b>{{ rupees(s.pending_total) }}</b><span>rent pending · {{ s.overdue }} bill(s) overdue</span></div>
+  <div class="stat"><b>{{ s.open_complaints }}</b><span>open complaints</span></div>
+</div>
+<div class="cols">
+  <section class="card">
+    <div class="head"><h2>Pending rent</h2><a href="{{ url_for('dues', show='unpaid') }}">All bills</a></div>
+    <table>
+      <tr><th>Resident</th><th>Room</th><th>Month</th><th class="num">Balance</th><th></th></tr>
+      {% for b in unpaid %}
+      <tr><td><a href="{{ url_for('resident_detail', rid=b.resident_id) }}">{{ b.name }}</a></td><td>{{ b.room_number }}</td>
+        <td>{{ month_name(b.month) }}</td><td class="num">{{ rupees(b.total - b.paid) }}</td>
+        <td>{% if b.due_on < today.isoformat() %}<span class="pill red">overdue</span>{% else %}<span class="pill amber">due {{ b.due_on|short }}</span>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="5" class="muted">Nothing pending. Every bill is paid.</td></tr>{% endfor %}
+    </table>
+  </section>
+  <section class="card">
+    <div class="head"><h2>Latest complaints</h2><a href="{{ url_for('complaints') }}">All</a></div>
+    {% for c in complaints %}
+      <div class="item"><span class="pill {{ c.status }}">{{ c.status.replace('_', ' ') }}</span>
+        <b>{{ c.category }}</b> · {{ c.name }}{% if c.room_number %}, room {{ c.room_number }}{% endif %}
+        <p class="muted small">{{ c.description|truncate(90) }}</p></div>
+    {% else %}<p class="muted">No complaints.</p>{% endfor %}
+  </section>
+</div>
+<section class="card">
+  <div class="head"><h2>Occupancy by block</h2><a href="{{ url_for('rooms') }}">Room map</a></div>
+  {% for name, b in s.blocks.items() %}
+  <div class="blockbar"><span>{{ name }} block</span>
+    <div class="meter wide"><i style="width: {{ (100 * b.occupied / b.beds)|round|int if b.beds else 0 }}%"></i></div>
+    <span class="muted">{{ b.occupied }} / {{ b.beds }} beds</span></div>
+  {% endfor %}
+</section>
+{% endblock %}

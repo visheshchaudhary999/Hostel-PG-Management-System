@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{{ s.name }}{% endblock %}
+{% block body %}
+<p><a href="{{ url_for('residents') }}">← Residents</a></p>
+<div class="head"><h1>{{ s.name }} {% if s.status == 'left' %}<span class="pill">left on {{ s.left_on }}</span>{% endif %}</h1>
+  {% if balance > 0 %}<span class="due big">Dues {{ rupees(balance) }}</span>{% else %}<span class="ok big">No dues</span>{% endif %}</div>
+<div class="cols">
+  <section class="card">
+    <h2>Details</h2>
+    <dl class="facts">
+      <dt>Room</dt><dd>{{ s.room_number or '–' }}{% if s.block %} ({{ s.block }} block, {{ rupees(s.rent) }} per month){% endif %}</dd>
+      <dt>Roommates</dt><dd>{% for p in roommates %}{{ p.name }}{{ ', ' if not loop.last }}{% else %}none{% endfor %}</dd>
+      <dt>Course</dt><dd>{{ s.course }}</dd>
+      <dt>Mobile</dt><dd>{{ s.phone }}</dd>
+      <dt>Email</dt><dd>{{ s.email }}</dd>
+      <dt>Guardian</dt><dd>{{ s.guardian_name }} {{ s.guardian_phone }}</dd>
+      <dt>Address</dt><dd>{{ s.address }}</dd>
+      <dt>Joined</dt><dd>{{ s.joined_on }}</dd>
+      <dt>Deposit</dt><dd>{{ rupees(s.deposit) }}</dd>
+    </dl>
+  </section>
+  {% if s.status == 'active' %}
+  <section class="card">
+    <h2>Change room</h2>
+    <form method="post" action="{{ url_for('shift', rid=s.id) }}" class="row">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <select name="room_id">{% for r in vacant if r.id != s.room_id %}<option value="{{ r.id }}">{{ r.number }} · {{ r.capacity - r.occupied }} free · {{ rupees(r.rent) }}</option>{% endfor %}</select>
+      <button class="btn ghost">Move</button>
+    </form>
+    <h2 class="gap">Check out</h2>
+    <p class="small muted">The leaving month is charged in full. Dues now: {{ rupees(preview.outstanding) }}; deposit {{ rupees(preview.deposit) }}.</p>
+    <form method="post" action="{{ url_for('vacate', rid=s.id) }}" class="row" onsubmit="return confirm('Check {{ s.name }} out of the hostel?')">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="date" name="left_on" value="{{ today.isoformat() }}" required>
+      <button class="btn danger">Check out</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+<section class="card">
+  <h2>Rent bills</h2>
+  <table>
+    <tr><th>Month</th><th>Room</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th class="num">Balance</th><th>Record payment</th></tr>
+    {% for b in bills %}
+    <tr><td>{{ month_name(b.month) }}</td><td>{{ b.room_number }}</td><td class="num">{{ rupees(b.rent) }}</td>
+      <td class="num">{{ rupees(b.late_fee) if b.late_fee else '–' }}</td><td class="num">{{ rupees(b.paid) }}</td>
+      <td class="num">{% if b.total > b.paid %}<span class="due">{{ rupees(b.total - b.paid) }}</span>{% else %}<span class="pill resolved">paid</span>{% endif %}</td>
+      <td>{% if b.total > b.paid %}{% set back = request.path %}{% include "_payform.html" %}{% endif %}</td></tr>
+    {% else %}<tr><td colspan="7" class="muted">No bills yet.</td></tr>{% endfor %}
+  </table>
+</section>
+<div class="cols">
+  <section class="card">
+    <h2>Payments</h2>
+    <table class="nowrap">{% for p in payments %}<tr><td>{{ p.paid_on }}</td><td>{{ month_name(p.month) }}</td><td>{{ p.mode }}</td>
+      <td class="num">{{ rupees(p.amount) }}</td><td><a href="{{ url_for('receipt', pid=p.id) }}">{{ p.receipt_no }}</a></td></tr>
+      {% else %}<tr><td class="muted">No payments yet.</td></tr>{% endfor %}</table>
+  </section>
+  <section class="card">
+    <h2>Complaints</h2>
+    {% for c in complaints %}<div class="item"><span class="pill {{ c.status }}">{{ c.status.replace('_', ' ') }}</span> <b>{{ c.category }}</b> · {{ c.created_on }}
+      <p class="small muted">{{ c.description }}</p></div>{% else %}<p class="muted">None.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

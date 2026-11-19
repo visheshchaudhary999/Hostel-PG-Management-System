@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Complaints{% endblock %}
+{% block body %}
+<div class="head"><h1>Complaints</h1>
+  <div class="tabs">{% for key, label in [(None, 'All'), ('open', 'Open'), ('in_progress', 'In progress'), ('resolved', 'Resolved')] %}
+    <a href="{{ url_for('complaints', status=key) }}" class="{{ 'on' if status == key }}">{{ label }}</a>{% endfor %}</div></div>
+<div class="list">
+{% for c in items %}
+  <div class="card complaint">
+    <div class="head"><div><span class="pill {{ c.status }}">{{ c.status.replace('_', ' ') }}</span> <b>{{ c.category }}</b>
+      · {{ c.name }}{% if c.room_number %}, room {{ c.room_number }}{% endif %}</div><span class="small muted">{{ c.created_on }}{% if c.resolved_on %} → resolved {{ c.resolved_on }}{% endif %}</span></div>
+    <p>{{ c.description }}</p>
+    <form method="post" class="row">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="id" value="{{ c.id }}">
+      <select name="status">{% for st in ['open', 'in_progress', 'resolved'] %}<option value="{{ st }}" {{ 'selected' if c.status == st }}>{{ st.replace('_', ' ') }}</option>{% endfor %}</select>
+      <input name="remark" value="{{ c.remark }}" placeholder="Remark for the resident" class="grow">
+      <button class="btn ghost">Update</button>
+    </form>
+  </div>
+{% else %}<p class="muted">No complaints here.</p>{% endfor %}
+</div>
+{% endblock %}

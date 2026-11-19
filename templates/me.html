@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My hostel{% endblock %}
+{% block body %}
+<div class="head"><h1>Hello, {{ s.name.split()[0] }}</h1>
+  {% if balance > 0 %}<span class="due big">You owe {{ rupees(balance) }}</span>{% else %}<span class="ok big">No dues</span>{% endif %}</div>
+<div class="stats">
+  <div class="stat"><b>{{ s.room_number }}</b><span>{{ s.block }} block · {{ s.capacity }}-seater</span></div>
+  <div class="stat"><b>{{ rupees(s.rent) }}</b><span>rent per month, due by the 10th</span></div>
+  <div class="stat"><b>{{ roommates|length }}</b><span>roommate(s): {% for p in roommates %}{{ p.name }}{{ ', ' if not loop.last }}{% else %}none{% endfor %}</span></div>
+</div>
+{% if notices %}<section class="card"><h2>Notices</h2>{% for n in notices %}<div class="item"><b>{{ n.title }}</b> <span class="small muted">{{ n.posted_on }}</span><p class="small">{{ n.body }}</p></div>{% endfor %}</section>{% endif %}
+<section class="card">
+  <h2>My rent</h2>
+  <table>
+    <tr><th>Month</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th class="num">Balance</th><th>Due by</th></tr>
+    {% for b in bills %}<tr><td>{{ month_name(b.month) }}</td><td class="num">{{ rupees(b.rent) }}</td><td class="num">{{ rupees(b.late_fee) if b.late_fee else '–' }}</td>
+      <td class="num">{{ rupees(b.paid) }}</td><td class="num">{% if b.total > b.paid %}<span class="due">{{ rupees(b.total - b.paid) }}</span>{% else %}<span class="pill resolved">paid</span>{% endif %}</td><td>{{ b.due_on }}</td></tr>
+    {% else %}<tr><td colspan="6" class="muted">No bills yet.</td></tr>{% endfor %}
+  </table>
+  <p class="small muted">Pay at the office or by UPI to the warden; your receipt appears below.
+    {% for p in payments[:4] %}<a href="{{ url_for('receipt', pid=p.id) }}">{{ p.receipt_no }}</a>{{ ' · ' if not loop.last }}{% endfor %}</p>
+</section>
+<div class="cols" id="complaints">
+  <form method="post" class="card form">
+    <h2>Raise a complaint</h2>
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Category <select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select></label>
+    <label>What is the problem? <textarea name="description" rows="3" required minlength="10" maxlength="1000"></textarea></label>
+    <button class="btn">Send to warden</button>
+  </form>
+  <section class="card">
+    <h2>My complaints</h2>
+    {% for c in complaints %}<div class="item"><span class="pill {{ c.status }}">{{ c.status.replace('_', ' ') }}</span> <b>{{ c.category }}</b> · {{ c.created_on }}
+      <p class="small">{{ c.description }}</p>{% if c.remark %}<p class="small muted">Warden: {{ c.remark }}</p>{% endif %}</div>
+    {% else %}<p class="muted">You haven't raised any complaints.</p>{% endfor %}
+  </section>
+</div>
+{% endblock %}

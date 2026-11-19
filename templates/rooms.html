@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Rooms{% endblock %}
+{% block body %}
+<div class="head"><h1>Rooms</h1>
+  <div class="tabs"><a href="{{ url_for('rooms') }}" class="{{ 'on' if not block }}">All</a>
+    <a href="{{ url_for('rooms', block='Boys') }}" class="{{ 'on' if block == 'Boys' }}">Boys block</a>
+    <a href="{{ url_for('rooms', block='Girls') }}" class="{{ 'on' if block == 'Girls' }}">Girls block</a></div>
+</div>
+<p class="legend"><i class="bed full"></i> occupied <i class="bed"></i> vacant</p>
+<div class="roomgrid">
+  {% for r in rooms %}
+  <div class="room {{ 'isfull' if r.occupied >= r.capacity }}">
+    <div class="head"><b>{{ r.number }}</b><span class="small muted">{{ r.block }} · floor {{ r.floor }}{% if r.ac %} · AC{% endif %}</span></div>
+    <div class="beds">{% for i in range(r.capacity) %}<i class="bed {{ 'full' if i < r.occupied }}"></i>{% endfor %}</div>
+    <div class="small">{{ rupees(r.rent) }} per bed · {{ r.capacity }}-seater</div>
+    <ul class="small">{% for p in people[r.id] %}<li><a href="{{ url_for('resident_detail', rid=p.id) }}">{{ p.name }}</a></li>{% endfor %}
+      {% if r.occupied < r.capacity %}<li class="free">{{ r.capacity - r.occupied }} bed(s) free</li>{% endif %}</ul>
+  </div>
+  {% endfor %}
+</div>
+<section class="card narrowcard">
+  <h2>Add a room</h2>
+  <form method="post" class="form grid4">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Room number <input name="number" required maxlength="10"></label>
+    <label>Block <select name="block"><option>Boys</option><option>Girls</option></select></label>
+    <label>Floor <input name="floor" type="number" min="0" max="20" value="1"></label>
+    <label>Beds <select name="capacity">{% for n in range(1, 5) %}<option {{ 'selected' if n == 2 }}>{{ n }}</option>{% endfor %}</select></label>
+    <label>Rent per bed (₹) <input name="rent" type="number" min="1" required></label>
+    <label class="check"><input type="checkbox" name="ac" value="1"> Air-conditioned</label>
+    <button class="btn">Add room</button>
+  </form>
+</section>
+{% endblock %}

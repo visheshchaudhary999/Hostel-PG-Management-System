@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Rent{% endblock %}
+{% block body %}
+<div class="head"><h1>Rent for {{ month_name(month) }}</h1>
+  <form method="get" class="row"><input type="month" name="month" value="{{ month }}"><button class="btn ghost">Show</button></form></div>
+<div class="toolbar">
+  <div class="tabs"><a href="{{ url_for('dues', month=month) }}" class="{{ 'on' if show != 'unpaid' }}">All bills</a>
+    <a href="{{ url_for('dues', month=month, show='unpaid') }}" class="{{ 'on' if show == 'unpaid' }}">Unpaid only</a></div>
+  <div class="row">
+    <form method="post" action="{{ url_for('generate') }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="month" value="{{ month }}"><button class="btn">Generate bills for {{ month_name(month) }}</button></form>
+    <a class="btn ghost" href="{{ url_for('dues_csv', month=month) }}">Download CSV</a>
+  </div>
+</div>
+<p class="muted small">Rent is due by the 10th. A late fee of ₹200 is added once to any bill still unpaid after that. Billed {{ rupees(totals.billed) }} · collected {{ rupees(totals.paid) }} · pending {{ rupees(totals.billed - totals.paid) }}.</p>
+<div class="card flat">
+<table>
+  <tr><th>Resident</th><th>Room</th><th class="num">Rent</th><th class="num">Late fee</th><th class="num">Paid</th><th class="num">Balance</th><th>Record payment</th></tr>
+  {% for b in bills %}
+  <tr><td><a href="{{ url_for('resident_detail', rid=b.resident_id) }}">{{ b.name }}</a></td><td>{{ b.room_number }}</td>
+    <td class="num">{{ rupees(b.rent) }}</td><td class="num">{{ rupees(b.late_fee) if b.late_fee else '–' }}</td>
+    <td class="num">{{ rupees(b.paid) }}</td>
+    <td class="num">{% if b.total > b.paid %}<span class="due">{{ rupees(b.total - b.paid) }}</span>{% else %}<span class="pill resolved">paid</span>{% endif %}</td>
+    <td>{% if b.total > b.paid %}{% set back = request.full_path %}{% include "_payform.html" %}{% endif %}</td></tr>
+  {% else %}<tr><td colspan="7" class="muted">No bills for this month. Use "Generate bills" to create them.</td></tr>{% endfor %}
+</table>
+</div>
+<p><a href="{{ url_for('dues', month=prev) }}">← {{ month_name(prev) }}</a></p>
+{% endblock %}

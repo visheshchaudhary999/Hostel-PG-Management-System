@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Residents{% endblock %}
+{% block body %}
+<div class="head"><h1>Residents</h1><a class="btn" href="{{ url_for('admit') }}">+ Admit resident</a></div>
+<form class="filters" method="get">
+  <input name="q" value="{{ q }}" placeholder="Search name, phone, course or room">
+  <select name="status"><option value="active" {{ 'selected' if status == 'active' }}>Current</option>
+    <option value="left" {{ 'selected' if status == 'left' }}>Left</option>
+    <option value="all" {{ 'selected' if status == 'all' }}>All</option></select>
+  <button class="btn ghost">Search</button>
+</form>
+<div class="card flat">
+<table>
+  <tr><th>Name</th><th>Room</th><th>Course</th><th>Phone</th><th>Joined</th><th class="num">Dues</th></tr>
+  {% for s in residents %}
+  <tr><td><a href="{{ url_for('resident_detail', rid=s.id) }}">{{ s.name }}</a> {% if s.status == 'left' %}<span class="pill">left</span>{% endif %}</td>
+    <td>{{ s.room_number or '–' }}</td><td>{{ s.course }}</td><td>{{ s.phone }}</td><td>{{ s.joined_on }}</td>
+    <td class="num">{% if s.balance > 0 %}<span class="due">{{ rupees(s.balance) }}</span>{% else %}<span class="muted">nil</span>{% endif %}</td></tr>
+  {% else %}<tr><td colspan="6" class="muted">No residents match.</td></tr>{% endfor %}
+</table>
+</div>
+<p class="muted small">{{ residents|length }} resident(s)</p>
+{% endblock %}

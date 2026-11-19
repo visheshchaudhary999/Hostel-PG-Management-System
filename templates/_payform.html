@@ -1,0 +1,7 @@
+<form method="post" action="{{ url_for('pay', iid=b.id) }}" class="pay">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="back" value="{{ back }}">
+  <input name="amount" type="number" min="1" max="{{ b.total - b.paid }}" value="{{ b.total - b.paid }}" aria-label="Amount">
+  <select name="mode" aria-label="Mode">{% for m in ['Cash', 'UPI', 'Card', 'Bank transfer'] %}<option>{{ m }}</option>{% endfor %}</select>
+  <button class="btn small">Pay</button>
+</form>

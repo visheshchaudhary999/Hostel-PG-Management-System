@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block body %}
+<div class="login card">
+  <h1>Log in</h1>
+  <p class="muted">Wardens manage rooms, residents and rent. Residents see their room, dues and complaints.</p>
+  {% if error %}<div class="flash error">{{ error }}</div>{% endif %}
+  <form method="post" class="form">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Email <input name="email" type="email" required autofocus value="{{ request.form.email }}"></label>
+    <label>Password <input name="password" type="password" required></label>
+    <button class="btn">Log in</button>
+  </form>
+  <p class="small muted">Demo: warden@hostel.local / warden123 · resident rohan.mehta@example.com / resident123</p>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ p.receipt_no }}{% endblock %}
+{% block body %}
+<div class="receipt card">
+  <div class="head"><div><h2>Sunrise Hostel</h2><p class="small muted">Rent receipt</p></div><b>{{ p.receipt_no }}</b></div>
+  <dl class="facts">
+    <dt>Received from</dt><dd>{{ p.name }} ({{ p.phone }})</dd>
+    <dt>Room</dt><dd>{{ p.room_number }}</dd>
+    <dt>For</dt><dd>Rent for {{ month_name(p.month) }}{% if p.late_fee %} including late fee {{ rupees(p.late_fee) }}{% endif %}</dd>
+    <dt>Amount</dt><dd class="big">{{ rupees(p.amount) }}</dd>
+    <dt>Mode</dt><dd>{{ p.mode }}</dd>
+    <dt>Date</dt><dd>{{ p.paid_on }}</dd>
+    <dt>Balance for the month</dt><dd>{{ rupees(p.total - p.paid_to_date) }}</dd>
+  </dl>
+  <p class="small muted">This is a computer-generated receipt.</p>
+  <button class="btn ghost noprint" onclick="window.print()">Print</button>
+</div>
+{% endblock %}

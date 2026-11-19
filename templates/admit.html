@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Admit resident{% endblock %}
+{% block body %}
+<h1>Admit a resident</h1>
+<p class="muted">Only rooms in the right block with a free bed are offered. The first month's rent is charged from the joining date.</p>
+<div class="tabs"><a href="{{ url_for('admit', gender='M') }}" class="{{ 'on' if gender == 'M' }}">Male (Boys block)</a>
+  <a href="{{ url_for('admit', gender='F') }}" class="{{ 'on' if gender == 'F' }}">Female (Girls block)</a></div>
+<form method="post" class="card form grid2">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="gender" value="{{ gender }}">
+  <label>Full name <input name="name" required value="{{ form.name }}"></label>
+  <label>Course <input name="course" value="{{ form.course }}" placeholder="B.Tech CSE, 2nd year"></label>
+  <label>Mobile <input name="phone" required pattern="[6-9][0-9]{9}" title="10-digit mobile number" value="{{ form.phone }}"></label>
+  <label>Email (used to log in) <input name="email" type="email" required value="{{ form.email }}"></label>
+  <label>Guardian's name <input name="guardian_name" value="{{ form.guardian_name }}"></label>
+  <label>Guardian's mobile <input name="guardian_phone" value="{{ form.guardian_phone }}"></label>
+  <label class="span2">Home address <input name="address" value="{{ form.address }}"></label>
+  <label>Room
+    <select name="room_id" required>
+      {% for r in vacant[gender] %}<option value="{{ r.id }}" {{ 'selected' if form.room_id == r.id|string }}>{{ r.number }} · {{ r.capacity }}-seater · {{ r.capacity - r.occupied }} free · {{ rupees(r.rent) }}</option>
+      {% else %}<option value="">No vacant bed in this block</option>{% endfor %}
+    </select></label>
+  <label>Joining date <input name="joined_on" type="date" required value="{{ form.joined_on or today.isoformat() }}"></label>
+  <label>Security deposit (₹) <input name="deposit" type="number" min="0" value="{{ form.deposit or 10000 }}"></label>
+  <label>Password for the resident <input name="password" type="password" minlength="8" required></label>
+  <div class="span2"><button class="btn">Admit and allot bed</button> <a href="{{ url_for('residents') }}" class="cancel">Cancel</a></div>
+</form>
+{% endblock %}
